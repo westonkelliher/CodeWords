@@ -33,6 +33,7 @@ fn main() {
     my_window_mode.min_height = 300.0;
     my_window_mode.width      = START_WIDTH;
     my_window_mode.height     = START_HEIGHT;
+    //my_window_mode.fullscreen_type = conf::WindowMode::True;
 
     // Make a Context and an EventLoop.
     let (ctx, event_loop) =
@@ -45,7 +46,7 @@ fn main() {
     // Create an instance of your event handler.
     // Usually, you should provide it with the Context object
     // so it can load resources like images during setup.
-    let my_runner = match MyRunner::new() {
+    let my_runner = match MyRunner::new(graphics::size(&ctx)) {
         Ok(r) => r,
         Err(e) => panic!("failed to create MyRunner: {}", e)
     };
@@ -191,27 +192,32 @@ struct MyRunner {
     word_cards: Vec<Vec<WordCard>>,
     current_turn: CardColor, // red or blue
     winner: CardColor,
+    size: (f32, f32),
 }
 
 impl MyRunner {
-    fn new() -> Result<Self> {
+    fn new(size: (f32, f32)) -> Result<Self> {
+        println!("{:?}", size);
         // errs when cant read file
-        let s = fs::read_to_string("words/game_words.txt")?;
+        let s = fs::read_to_string("/home/requin/rqn/words/game_words.txt")?;
         let all_words_ = s.split("\n").collect::<Vec<&str>>(); 
         let all_words = all_words_[..all_words_.len()-1].iter(); // always a newline at the end so last element is empty
         let mut rng = thread_rng();
         let chosen_words = all_words.choose_multiple(&mut rng, 25);
         let mut runner = MyRunner {
-            clients: Vec::new(),
+            clients: targetlib::get_client_info(),
             word_cards: Vec::new(),
             current_turn: CardColor::Blue,
             winner: CardColor::Neutral,
+            size: size,
         };
+
         // randomly choose card colors
         let card_indices: Vec<usize> = (0..25).collect();
         let non_neutrals = card_indices.clone().into_iter().choose_multiple(&mut rng, 18);
         let blue_and_death = non_neutrals.clone().into_iter().choose_multiple(&mut rng, 10);
         let death = blue_and_death.clone().into_iter().choose_multiple(&mut rng, 1);
+
         // initiate cards
         for j in 0..5 {
             runner.word_cards.push(Vec::new());
@@ -233,6 +239,13 @@ impl MyRunner {
                 });
             }
         }
+
+        // assign specs for existing control pads
+        for (n, client) in runner.clients.iter().enumerate() {
+            targetlib::assign_spec(client,
+                                   runner.get_cp_spec(n, client.w, client.h));
+        }
+
         Ok(runner)
     }
 
@@ -404,10 +417,11 @@ impl EventHandler<ggez::GameError> for MyRunner {
         graphics::clear(ctx, Color::WHITE); 
 
         // determine dimensions of different areas
-        let prompt_h = START_HEIGHT/20.0;
-        let prompt_w = START_WIDTH;
-        let card_area_w = START_WIDTH;
-        let card_area_h = START_HEIGHT - prompt_h;
+        let (sw, sh) = self.size;
+        let prompt_h = sh/20.0;
+        let prompt_w = sw;
+        let card_area_w = sw;
+        let card_area_h = sh - prompt_h;
         let card_area_x = 0.0;
         let card_area_y = prompt_h;
 
