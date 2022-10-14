@@ -303,6 +303,13 @@ impl MyRunner {
                        w - plr_pnl_w, 0, plr_pnl_w, h,
                        cardcolor_to_vec(&cc)),
         ];
+	// If game is over, provide button to exit back to launcher
+	if self.winner != CardColor::Neutral {
+            buttons.push(
+                Button::new(99,
+                            w - plr_pnl_w + 4, (h - plr_pnl_w)/2,
+                            plr_pnl_w - 8, plr_pnl_w));
+	}
         for j in 0..5_u32 {
             for i in 0..5_u32 {
                 let card = &self.word_cards[j as usize][i as usize];
@@ -342,7 +349,7 @@ impl MyRunner {
 
 impl EventHandler<ggez::GameError> for MyRunner {
 
-    fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
+    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         let mut controller_change = false;
         let mut end_turn = false;
         let mut end_game: Option<CardColor> = None;
@@ -354,6 +361,10 @@ impl EventHandler<ggez::GameError> for MyRunner {
                         if event.element_id == 100 {
                             end_turn = true;
                             break;
+                        }
+                        if event.element_id == 99 {
+			    ggez::event::quit(ctx);
+			    std::process::exit(0);
                         }
                         let j = event.element_id as usize / 5;
                         let i = event.element_id as usize % 5;
