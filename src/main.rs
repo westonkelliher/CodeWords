@@ -13,8 +13,8 @@ use rand::{seq::IteratorRandom, thread_rng};
 use std::error::Error;
 pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-const START_WIDTH:  f32 = 1200.0;
-const START_HEIGHT: f32 = 800.0;
+const START_WIDTH:  f32 = 1920.0;
+const START_HEIGHT: f32 = 1080.0;
 
 
 fn main() {
@@ -33,7 +33,7 @@ fn main() {
     my_window_mode.min_height = 300.0;
     my_window_mode.width      = START_WIDTH;
     my_window_mode.height     = START_HEIGHT;
-    //my_window_mode.fullscreen_type = conf::WindowMode::True;
+    my_window_mode.fullscreen_type = conf::FullscreenType::True;
 
     // Make a Context and an EventLoop.
     let (ctx, event_loop) =
@@ -417,7 +417,7 @@ impl EventHandler<ggez::GameError> for MyRunner {
         graphics::clear(ctx, Color::WHITE); 
 
         // determine dimensions of different areas
-        let (sw, sh) = self.size;
+        let (sw, sh) = (START_WIDTH, START_HEIGHT);//self.size;
         let prompt_h = sh/20.0;
         let prompt_w = sw;
         let card_area_w = sw;
