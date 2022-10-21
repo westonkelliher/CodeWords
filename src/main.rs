@@ -341,7 +341,7 @@ impl MyRunner {
                 }
             }
         }
-        CPSpec::new(panels, buttons, vec![])
+        CPSpec::new(panels, buttons, vec![], vec![])
     }
     
 }
